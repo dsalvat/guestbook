@@ -2,30 +2,45 @@
 
 namespace App\Controller;
 
+use App\Entity\Conference;
+use App\Repository\CommentRepository;
+use App\Repository\ConferenceRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Twig\Environment;
 
 class ConferenceController extends AbstractController
 {
     /**
      * @Route("/", name="homepage")
      */
-    public function index(Request $request)
+    public function index(Environment $twig, ConferenceRepository $conferenceRepository)
     {
-        $greet = '';
+        return new Response($twig->render('conference/index.html.twig',
+            ['conferences' => $conferenceRepository->findAll()]));
+    }
 
-        if($name = $request->query->get('hello')){
-            $greet = sprintf('<H1>Hello %s ! </H1>', htmlspecialchars($name));
-        }
-        return new Response(<<<EOF
-            <HTML>
-                <BODY>
-                    $greet
-                    <IMG SRC="/images/under-construction.gif" />
-                </BODY>
-            </HTML>
-            EOF);
+    /**
+     * @Route("/conference/{id}", name="conference")
+     *
+     * @param Environment $twig
+     * @param Conference $conference
+     * @param CommentRepository $commentRepository
+     */
+    public function show(Request $request, Environment $twig, Conference $conference,
+                         CommentRepository $commentRepository)
+    {
+        $offset = max(0, $request->query->getInt('offset', 0));
+        $paginator = $commentRepository->getCommentPaginator($conference, $offset);
+
+
+        return new Response($twig->render('conference/show.html.twig',[
+            'conference' => $conference,
+            'comments' => $paginator,
+            'previous' => $offset - CommentRepository::PAGINATOR_PER_PAGE,
+            'next' => min(count($paginator), $offset + CommentRepository::PAGINATOR_PER_PAGE)
+        ]));
     }
 }
