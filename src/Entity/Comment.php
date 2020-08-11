@@ -113,6 +113,8 @@ class Comment
     public function setCreatedAtValue(): self
     {
         $this->createdAt = new \DateTime();
+
+        return $this;
     }
 
     public function getConference(): ?Conference

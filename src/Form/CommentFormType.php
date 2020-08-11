@@ -21,7 +21,7 @@ class CommentFormType extends AbstractType
             ])
             ->add('text')
             ->add('email', EmailType::class)
-            ->add('photoFilename', FileType::class, [
+            ->add('photo', FileType::class, [
                 'required' => false,
                 'mapped' => false,
                 'constraints' => [
